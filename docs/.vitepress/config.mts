@@ -18,12 +18,10 @@ export default defineConfig({
     sidebar: [
       { text: 'Start Here', items: [
         { text: 'Getting Started', link: '/guide/getting-started' },
-        { text: 'Writing Reliable Scripts', link: '/guide/patterns' },
-        { text: 'ABI and Package Boundary', link: '/concepts/abi' }
+        { text: 'Writing Reliable Scripts', link: '/guide/patterns' }
       ]},
       { text: 'API Reference', items: [
-        { text: 'Overview', link: '/api/' }, { text: 'Coverage & Drift Audit', link: '/api/coverage' },
-        { text: 'Generated Member Audit', link: '/api/generated-audit' },
+        { text: 'Overview', link: '/api/' },
         { text: 'Bots', link: '/api/bots' }, { text: 'Execution', link: '/api/execution' },
         { text: 'Game', link: '/api/game' }, { text: 'Entities & Queries', link: '/api/entities' },
         { text: 'Inventory', link: '/api/inventory' }, { text: 'Equipment', link: '/api/equipment' },
@@ -31,9 +29,15 @@ export default defineConfig({
         { text: 'Shops', link: '/api/shops' }, { text: 'Trade', link: '/api/trade' },
         { text: 'Dialogue', link: '/api/dialogue' }, { text: 'Quests', link: '/api/quests' },
         { text: 'Navigation', link: '/api/navigation' }, { text: 'Events', link: '/api/events' },
-        { text: 'Settings', link: '/api/settings' }, { text: 'Acquisition & Tools', link: '/api/acquisition' },
+        { text: 'Settings', link: '/api/settings' }, { text: 'Canvas & Overlays', link: '/api/canvas' },
+        { text: 'Acquisition & Tools', link: '/api/acquisition' },
         { text: 'World Catalogs', link: '/api/catalogs' }, { text: 'Low-Level Reader', link: '/api/reader' },
         { text: 'Client-ABI-Only APIs', link: '/api/client-only' }
+      ]},
+      { text: 'API Internals & Audit', items: [
+        { text: 'ABI and Package Boundary', link: '/concepts/abi' },
+        { text: 'Coverage & Drift Audit', link: '/api/coverage' },
+        { text: 'Generated Member Audit', link: '/api/generated-audit' }
       ]},
       { text: 'Contributing', items: [{ text: 'Source of Truth', link: '/contributing/source-of-truth' }] }
     ],
