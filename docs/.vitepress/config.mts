@@ -23,6 +23,7 @@ export default defineConfig({
       ]},
       { text: 'API Reference', items: [
         { text: 'Overview', link: '/api/' }, { text: 'Coverage & drift audit', link: '/api/coverage' },
+        { text: 'Generated member audit', link: '/api/generated-audit' },
         { text: 'Bots', link: '/api/bots' }, { text: 'Execution', link: '/api/execution' },
         { text: 'Game', link: '/api/game' }, { text: 'Entities & Queries', link: '/api/entities' },
         { text: 'Inventory', link: '/api/inventory' }, { text: 'Equipment', link: '/api/equipment' },
