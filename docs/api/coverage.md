@@ -1,4 +1,4 @@
-# API coverage and drift audit
+# API Coverage and Drift Audit
 
 This page records the current `rs2b2t/rs2b0t` scripting surface against four layers:
 
@@ -7,108 +7,108 @@ This page records the current `rs2b2t/rs2b0t` scripting surface against four lay
 3. `packages/rs2b0t-api/index.d.ts` — TypeScript declarations.
 4. `src/bot/api/**` and `docs/reference/**` — implementation and intended behavior.
 
-The audit is performed against upstream `main`. The important rule is that auditing a top-level export such as `Bank` is not enough: every member of the runtime object/class must also be compared with its package declaration. That member-level pass is what exposes capabilities such as `Bank.close()`.
+Auditing a top-level export such as `Bank` is not enough. Every reachable member must also be compared with the package declaration. That member-level pass is what exposed capabilities such as `Bank.close()`.
 
-## Status meanings
+## Status Meanings
 
 - **Public** — exported by `index.js` and represented by the package declarations.
 - **Runtime drift** — reachable through an exported object/class at runtime but missing from the current `.d.ts` member surface.
 - **Declaration bug** — declared as a package value, but the runtime shim does not export that top-level value.
-- **Reachable implementation detail** — technically present on an exported runtime class/object, but intended for host plumbing rather than script logic.
+- **Reachable implementation detail** — present on an exported runtime class/object, but intended for host/internal plumbing rather than ordinary script logic.
 - **Client ABI only** — installed on `globalThis.__rs2b0t` but not re-exported by `@rs2b0t/api`.
 - **Internal** — source-only implementation detail, not installed in the public ABI.
 - **Pending** — proposed/unmerged external API.
 
-## Public runtime exports
+## Automated Audit Result
 
-The current `packages/rs2b0t-api/index.js` runtime shim exports these groups:
+The corrected AST audit of upstream commit `56bb1baab48bd77f0d57125a73bb6189f04aae7b` scanned **453** files under `src/bot/api/**`, finding **2,962 exported source symbols** and **5,197 source members**. At the package boundary it found 137 public source symbols, two API-tree ABI-only symbols, and no top-level runtime exports missing declarations.
 
-| Group | Runtime exports |
-| --- | --- |
-| ABI / registration | `apiVersion`, `Execution`, `defineBot`, `registerScript`, `events` |
-| World / game | `Game`, `Tile`, `Area` |
-| Navigation | `Traversal`, `DirectNavigator` |
-| Entities | `Npcs`, `Players`, `Locs`, `GroundItems`, `EntityQuery`, `Npc`, `Player`, `Loc`, `GroundItem` |
-| Inventory / equipment | `Inventory`, `InvItem`, `Equipment` |
-| Banking | `Bank`, `withdrawOp`, `Banking`, banking rules/routes/catalog helpers |
-| UI / player interaction | `Shop`, `Trade`, `Skills`, `ChatDialog`, `Quests` |
-| Item/tool acquisition | `AcquireTask`, `hasAll`, `held`, tool requirements and acquisition planners |
-| World catalogs | pickpocket, gathering, fishing, mining, woodcutting, walking, cow and runecrafting catalogs |
-| Bot classes | `AbstractBot`, `LoopingBot`, `TaskBot`, `TreeBot`, `BranchTask`, `LeafTask` |
-| Escape hatch | `reader` |
+The raw member pass reported **83 runtime/declaration drift candidates**. Manual review reduced that number because 33 were container-key false positives: the implementation spells out keys of `Readonly<Record<string, number>>` price/smithing maps and `SettingsSchema` objects while the declaration correctly types the container rather than enumerating every key. Those keys are **not declaration drift**.
 
-The detailed [Acquisition & Tools](/api/acquisition) and [World Catalogs](/api/catalogs) pages enumerate the large pure-data/helper families.
+The remaining **50 member-level mismatches are real implementation/declaration differences**. Some are useful hidden scripting capabilities; others are reachable constructors or runtime-host plumbing and are documented as such rather than promoted as recommended API.
 
-## High-value runtime drift found by member audit
+## Verified Runtime Drift
 
-These are particularly useful for writing comprehensive external scripts. They exist on objects/classes that the runtime shim already exports, but the inspected package `.d.ts` does not fully describe them.
-
-| Object | Runtime member | Why it matters |
-| --- | --- | --- |
-| `Bank` | `close(timeoutMs?)` | Properly close bank + side backpack before Wield/Use/Bury |
-| `Bank` | `ready()`, `waitReady()` | Distinguish an empty bank from a bank whose item snapshot has not arrived |
-| `Bank` | `snapshotReady()`, `snapshotGeneration()`, `waitSnapshotAfter()` | Synchronize exact bank snapshot generations |
-| `Bank` | `normalBackpackSnapshot()`, `backpackReady()` | Verify the side backpack matches the pre-open inventory |
-| `Bank` | `countById()`, `withdrawById()`, `withdrawXById()` | Work with exact item IDs and noted/unnoted variants |
-| `Bank` | `withdrawLoad()` | Fill available backpack capacity from one bank item efficiently |
-| `Bank` | `openNpcAccess()`, `openNearestAccess()` | Banks opened through NPC dialogue or special objects |
-| `Inventory` | `countById()` | Exact-ID inventory counts |
-| `Inventory` | `free()` | Free-slot count, including bank-side backpack semantics |
-| `InvItem` | `useOn(GroundItem)` | Use a held item on a ground item |
-| `Shop` | `buyById()` | Buy the correct object when duplicate display names exist |
-| `Trade` | `removeAll()` | Clear your current offer before rebuilding it |
-| `ChatDialog` | `texts()` | Read current chat-modal/NPC text |
-| `ChatDialog` | `makeX()` | Drive Make-X and its amount dialog safely |
-| `ChatDialog` | main-panel make helpers | Operate production interfaces that are not chat make menus |
-| `Quests` | `journal()` | Read mid-stage quest journal text |
-| `Npc` | `id`, `targetsMe()`, `targetsAnotherPlayer()` | Exact identity and combat-target ownership |
-| `Player` | `index`, `targetsMe()` | Low-level player targeting and PvP state |
-| `EntityQuery` | `withinOf()`, `nearestPreferLocal()` | Anchor-relative and local-cluster queries |
-| `Game` | scene readiness, retaliation/PvP, extra spell targets | Safer scene actions and richer combat/magic control |
-| `Traversal` | `teleportsEnabled()`, `requestRepath()` | Inspect global teleport policy and force path refresh |
-| `AbstractBot` | `loopCadence` | Explicit frame/server-tick/time loop scheduling |
-
-Each affected detailed API page includes signatures and recommended narrow TypeScript casts.
-
-## `Bank.close()` example
-
-The runtime implementation closes through the client's modal-close operation and then waits until both the main bank and its side backpack modal are gone:
+### `Bank`
 
 ```ts
-const BankRuntime = Bank as typeof Bank & {
-  close(timeoutMs?: number): Promise<boolean>;
-};
-
-await BankRuntime.close();
+Bank.ready()
+Bank.waitReady(timeoutMs?, log?)
+Bank.snapshotReady()
+Bank.snapshotGeneration()
+Bank.waitSnapshotAfter(generation, timeoutMs?)
+Bank.normalBackpackSnapshot()
+Bank.backpackReady(expected, log?)
+Bank.countById(id)
+Bank.withdrawById(id, op?)
+Bank.withdrawXById(id, count, landsAsId?)
+Bank.openNpcAccess(...)
+Bank.close(timeoutMs?)
 ```
 
-This is the model for documenting runtime drift: do not pretend the method is typed, but do not hide a useful working runtime capability merely because `index.d.ts` is behind.
+`Bank.close()` is especially important: it closes the bank modal and verifies that both the bank and its side-backpack modal are gone before returning. See [Banking](/api/banking).
 
-## Top-level declaration bug: navigation constants
-
-`index.d.ts` declares top-level `NAV_PURE_WALK` and `NAV_WITH_TELES` exports, but the current `packages/rs2b0t-api/index.js` shim does not export those names. Direct imports can therefore type-check and fail at runtime.
-
-Use the actual runtime properties:
-
-```ts
-Traversal.pureWalk
-Traversal.withTeles
-```
-
-## Other confirmed runtime drift
+`Bank.withdrawLoad()` and `Bank.openNearestAccess()` were also checked during this pass and are **already declared**; they are not runtime drift.
 
 ### `Game`
 
 ```ts
 Game.sceneReady()
 Game.sceneState()
-Game.combatStyles()
 Game.autoRetaliateOn()
 Game.attackedByPlayer()
+Game.combatStyles()
 Game.setAutoRetaliate(on)
 Game.castOnLoc(spell, loc)
 Game.castOnItem(spell, item)
 ```
+
+See [Game](/api/game).
+
+### `Inventory` and `InvItem`
+
+```ts
+Inventory.countById(id)
+Inventory.free()
+```
+
+The implementation also accepts `GroundItem` in `InvItem.useOn(...)`, although the declaration's target union omits it. `InvItem` has a runtime snapshot constructor/state shape that is not represented by the package declaration; treat direct construction/snapshot access as an implementation escape hatch. See [Inventory](/api/inventory).
+
+### Entity Classes and Queries
+
+```ts
+Npc.id
+Npc.targetsAnotherPlayer()
+Npc.targetsMe()
+
+Player.index
+Player.targetsMe()
+
+EntityQuery.withinOf(origin, dist)
+EntityQuery.nearestPreferLocal(preferRadius)
+```
+
+`Npc`, `Player`, `Loc`, and `GroundItem` are implemented with snapshot-taking constructors that the declaration omits. These constructors are reachable JavaScript behavior but are not recommended as the normal way to obtain entities; use `Npcs`, `Players`, `Locs`, and `GroundItems` queries.
+
+`EntityQuery.fromSnapshots(...)` is also reachable as a static runtime method but exists to build snapshot-first query adapters. It is classified as a **reachable implementation detail**, not a recommended external query primitive. See [Entities & Queries](/api/entities).
+
+### `Shop`, `Trade`, `ChatDialog`, and `Quests`
+
+```ts
+Shop.buyById(id, n)
+Trade.removeAll()
+
+ChatDialog.texts()
+ChatDialog.makeX(match, count)
+ChatDialog.isMainMakePanel()
+ChatDialog.mainMakeProducts()
+ChatDialog.makeFromPanel(match, op?)
+ChatDialog.makeFromPanelMax(match)
+
+Quests.journal(name)
+```
+
+These methods are all present in current implementation objects exported through the runtime shim but absent from the inspected `.d.ts`. See [Shops](/api/shops), [Trade](/api/trade), [Dialogue](/api/dialogue), and [Quests](/api/quests).
 
 ### `Traversal`
 
@@ -117,53 +117,65 @@ Traversal.teleportsEnabled()
 Traversal.requestRepath(reason?)
 ```
 
-### `EntityQuery`
-
-```ts
-query.withinOf(origin, dist)
-query.nearestPreferLocal(preferRadius)
-```
+`Traversal.pureWalk` and `Traversal.withTeles` are both runtime-backed **and declared**. See [Navigation](/api/navigation).
 
 ### `AbstractBot`
 
-`loopCadence` exists in the implementation and runtime class but is not declared in the inspected package `.d.ts`.
+```ts
+loopCadence
+on(event, callback)
+bindLog(sink)
+disposeSubscriptions()
+```
 
-### `AcquireTask` declaration anomaly
+`loopCadence` is useful script-facing runtime behavior and is documented in [Bots](/api/bots). `bindLog()` and `disposeSubscriptions()` are host lifecycle plumbing; they are reachable because the class is exported, but scripts should not normally take ownership of them. `on()` is likewise runtime-backed but subscription lifecycle should be handled carefully.
 
-The package `.d.ts` places optional `options` and `group` fields on `AcquireTask`, but the implementation class contains only its constructor, `validate()` and `execute()`. Do not rely on those fields as real instance state.
+## Top-Level Declaration Bugs
 
-## Reachable but not recommended as script API
+The audit confirms exactly two declared package values that the runtime shim does not export:
 
-Exporting a class exposes all its JavaScript methods even when some are runtime-host plumbing. For example, `AbstractBot.bindLog()` and `disposeSubscriptions()` are callable on the class at runtime, but the host owns logging/subscription lifecycle. They should not be treated like useful hidden scripting features.
+```ts
+NAV_PURE_WALK
+NAV_WITH_TELES
+```
 
-Likewise, source-level `snap` properties on entity/item classes are reachable and sometimes valuable for advanced work, but they couple a script directly to adapter snapshot shapes. Prefer named members first.
+Direct imports can therefore type-check and fail at runtime. Use the actual runtime properties instead:
 
-## The `reader` escape hatch
+```ts
+Traversal.pureWalk
+Traversal.withTeles
+```
 
-`reader` is itself a runtime export, while its package type is intentionally only a generic record. The real reader has a broad member surface including hint-arrow state, raw entity/inventory snapshots, object catalog metadata, modal introspection, trade-confirm snapshots, collision/path information, projection helpers and snapshot-readiness state.
+There are no runtime-shim exports absent from the installed ABI, and no runtime-shim top-level exports lacking a value declaration in the current package file.
 
-See [Low-level reader](/api/reader) for the useful families and safe isolation pattern.
+## Client-ABI-Only Surface
 
-## Client-ABI-only surface
-
-The client ABI additionally installs names that the external shim does not re-export, including:
+The client ABI additionally installs names that the external shim does not re-export:
 
 `questLive`, `Reachability`, `EssenceSession`, `Prayer`, `Loadouts`, `PathPublish`, `isNavPathPaintEnabled`, `SettingsStore`, `KNOWN_DANGER_ZONES`, `knownDangerZone`, `knownDangerZoneIds`, `resolveDangerZones`, `tileInDangerZones`, `BUILD_INFO`.
 
-See [Client-ABI-only APIs](/api/client-only) for the stability warning.
+See [Client-ABI-Only APIs](/api/client-only).
 
-## Internal source-only surface
+## Other Declaration Anomalies
 
-A symbol can have upstream documentation and still not be external API. `Paint`, for example, is an in-client HUD toolkit but is neither installed by the ABI nor exported by `packages/rs2b0t-api/index.js`.
+`AcquireTask` is declared with optional `options` and `group` fields, but the current implementation class does not define those fields. Do not rely on them as real instance state.
 
-Do not import arbitrary internal source modules from third-party bundles unless you intentionally accept source-tree coupling.
+The current source also has `LoopCadence`/`loopCadence` behavior that is not represented by the external package declaration.
 
-## 2004bot reference comparison
+## Internal Source-Only Surface
 
-The public 2004bot API page is useful historical/reference material, but it is not authoritative for rs2b2t. The current source has evolved beyond it in loop scheduling, banking readiness/closure, Game state, navigation, dialogue/make helpers and other areas.
+The source tree contains a much larger internal API than the external package. Exporting a symbol from a TypeScript source module does **not** make it third-party scripting API. A symbol must cross the ABI/package boundary before this site calls it public or runtime drift.
+
+`Paint`, for example, is an in-client HUD toolkit but is neither installed by the ABI nor exported by `packages/rs2b0t-api/index.js`.
+
+## 2004bot Reference Comparison
+
+The public 2004bot API page is useful historical/reference material, but it is not authoritative for rs2b2t. Current source has evolved beyond it in loop scheduling, banking readiness/closure, Game state, navigation, dialogue/make helpers, and other areas.
 
 For this site, current rs2b2t source wins whenever the older web reference disagrees.
 
-## Audit rule
+## Audit Rule
 
 A change is not considered comprehensively documented until all applicable layers are checked at **member level**: runtime shim, `.d.ts`, client ABI, implementation, upstream reference docs, and this site's detailed API page.
+
+The generated report is deliberately a discovery aid. Generic records/settings schemas and implementation plumbing still require manual classification before a finding is presented as external API drift.
