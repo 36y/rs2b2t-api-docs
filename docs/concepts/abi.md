@@ -1,6 +1,6 @@
 # ABI and package boundary
 
-The rs2b0t scripting system has two related but distinct surfaces.
+The rs2b0t scripting system has two related but distinct runtime surfaces, plus declarations and source implementation that can occasionally drift from them.
 
 ## Client ABI
 
@@ -35,7 +35,7 @@ The package is therefore not a standalone game-client SDK. It expects to run ins
 
 ## Why this documentation classifies symbols
 
-The client ABI contains a few facilities that the external package does not export, including client/debug/harness-oriented members.
+The client ABI contains facilities that the external package does not export, and exported runtime classes/objects can also contain members that the external `.d.ts` does not accurately describe.
 
 A symbol existing somewhere under `src/bot/**` does **not** make it a public scripting API.
 
@@ -43,9 +43,13 @@ The documentation uses these classifications:
 
 | Classification | Meaning |
 | --- | --- |
-| Public | Exported by `@rs2b0t/api` and documented for external scripts |
-| Client ABI | Installed on `globalThis.__rs2b0t`, but not guaranteed as a normal external package export |
-| Internal | Source implementation detail |
-| Pending | Proposed in an unmerged change |
+| Public External API | Runtime package export and external declaration agree |
+| Runtime/Declaration Drift | Runtime and `.d.ts` disagree about a member, signature, type or reachable behavior |
+| Reachable Implementation Detail | Reachable through an exported runtime object/class, but intended for host or low-level implementation work rather than normal scripts |
+| Client ABI Only | Installed on `globalThis.__rs2b0t`, but not re-exported by `@rs2b0t/api` |
+| Internal | Source-only implementation detail that does not cross the package/ABI boundary |
+| Pending | Proposed or unmerged external API |
 
-See [Source of truth](/contributing/source-of-truth).
+A declaration bug is recorded when the `.d.ts` promises something the runtime package shim does not actually provide.
+
+See [Source of Truth](/contributing/source-of-truth) and [Coverage & Drift Audit](/api/coverage).
