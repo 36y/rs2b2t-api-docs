@@ -2,9 +2,9 @@
 
 Independent documentation site for the [rs2b2t/rs2b0t](https://github.com/rs2b2t/rs2b0t) client and its external scripting API.
 
-The intended production domain is:
+Published documentation:
 
-- https://rs2b2t.com/
+- https://36y.github.io/rs2b2t-api-docs/
 
 The documentation is source-grounded against the rs2b0t repository. The supported external scripting contract is determined by all of:
 
@@ -37,6 +37,4 @@ npm run docs:preview
 
 ## Deployment
 
-A GitHub Pages workflow is included in `.github/workflows/docs.yml`.
-
-The VitePress public directory includes a `CNAME` for `rs2b2t.com`.
+A GitHub Pages workflow is included in `.github/workflows/docs.yml`. The site is deployed under the repository Pages path `/rs2b2t-api-docs/`; it does not configure a custom domain.
