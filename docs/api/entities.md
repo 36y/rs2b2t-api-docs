@@ -4,6 +4,8 @@
 
 ### `Npc`
 
+Declared members include:
+
 ```ts
 name: string | null
 level: number
@@ -18,7 +20,19 @@ valid(): boolean
 interact(action): boolean | Promise<boolean>
 ```
 
+Current runtime additionally exposes:
+
+```ts
+id: number
+targetsAnotherPlayer(): boolean
+targetsMe(): boolean
+```
+
+These are useful for exact NPC identification and combat ownership. They are missing from the inspected external `.d.ts`.
+
 ### `Player`
+
+Declared surface:
 
 ```ts
 name: string | null
@@ -28,6 +42,15 @@ tile(): Tile
 distance(): number
 actions(): string[]
 ```
+
+Current runtime additionally exposes:
+
+```ts
+index: number
+targetsMe(): boolean
+```
+
+`targetsMe()` tests the player's face target against the local player's slot. The `index` is useful when interoperating with lower-level player operations.
 
 ### `Loc`
 
@@ -55,6 +78,10 @@ distance()
 actions()
 interact(action)
 ```
+
+### Runtime snapshots
+
+The implementation classes retain their constructor snapshot as a public `snap` property at runtime. This exposes fields such as NPC animation/face target, loc typecode and raw operation arrays. `snap` is not part of the package declaration; prefer named API members when available and treat snapshot access as an implementation-level escape hatch.
 
 ## Queries
 
@@ -88,7 +115,7 @@ nearestPreferLocal(preferRadius: number)
 
 `nearestPreferLocal()` first restricts to entities within `preferRadius` of the player when that local cluster is non-empty, then chooses the nearest from that pool.
 
-**Compatibility note:** both methods exist on the current runtime-exported `EntityQuery` implementation, but the inspected `packages/rs2b0t-api/index.d.ts` does not declare them yet.
+Both methods exist on the current runtime-exported `EntityQuery` implementation, but the inspected `packages/rs2b0t-api/index.d.ts` does not declare them yet.
 
 Terminals:
 
@@ -111,6 +138,8 @@ Players.query()
 Locs.query()
 GroundItems.query()
 ```
+
+`Npcs.all()` and `Npcs.nearest()` are NPC-specific convenience methods; the other root objects currently expose `query()` only.
 
 ### Scene-transition caveat
 
