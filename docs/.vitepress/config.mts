@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress';
 export default defineConfig({
   title: 'rs2b2t',
   description: 'Complete rs2b0t client and scripting API documentation',
+  base: '/rs2b2t-api-docs/',
   cleanUrls: true,
   lastUpdated: true,
   head: [['meta', { name: 'theme-color', content: '#111827' }]],
