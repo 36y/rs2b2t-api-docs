@@ -11,13 +11,14 @@ Auditing a top-level export such as `Bank` is not enough. Every reachable member
 
 ## Status Meanings
 
-- **Public** — exported by `index.js` and represented by the package declarations.
-- **Runtime drift** — reachable through an exported object/class at runtime but missing from the current `.d.ts` member surface.
-- **Declaration bug** — declared as a package value, but the runtime shim does not export that top-level value.
+- **Public external API** — exported by the runtime package shim and represented by the package declarations.
+- **Runtime/declaration drift** — runtime behavior and the external TypeScript declaration disagree, including missing members and signature/type differences.
 - **Reachable implementation detail** — present on an exported runtime class/object, but intended for host/internal plumbing rather than ordinary script logic.
 - **Client ABI only** — installed on `globalThis.__rs2b0t` but not re-exported by `@rs2b0t/api`.
 - **Internal** — source-only implementation detail, not installed in the public ABI.
 - **Pending** — proposed/unmerged external API.
+
+A **declaration bug** is an audit finding within those boundaries: the `.d.ts` declares something that the runtime package shim does not actually provide.
 
 ## Automated Audit Result
 
@@ -25,7 +26,9 @@ The corrected AST audit of upstream commit `56bb1baab48bd77f0d57125a73bb6189f04a
 
 The raw member pass reported **83 runtime/declaration drift candidates**. Manual review reduced that number because 33 were container-key false positives: the implementation spells out keys of `Readonly<Record<string, number>>` price/smithing maps and `SettingsSchema` objects while the declaration correctly types the container rather than enumerating every key. Those keys are **not declaration drift**.
 
-The remaining **50 member-level mismatches are real implementation/declaration differences**. Some are useful hidden scripting capabilities; others are reachable constructors or runtime-host plumbing and are documented as such rather than promoted as recommended API.
+The remaining **50 member-level implementation/declaration differences are real**. Some are useful hidden scripting capabilities; others are reachable constructors, access-modifier differences or runtime-host plumbing and are classified rather than automatically promoted as recommended API.
+
+The AST member-presence count is not a complete signature/type audit. Separate manual checks have also found differences such as `Shop.sell(..., pick)`, `SettingDef` presentation fields and the return type of `registerScript()`; those are recorded below.
 
 ## Verified Runtime Drift
 
@@ -108,7 +111,7 @@ ChatDialog.makeFromPanelMax(match)
 Quests.journal(name)
 ```
 
-These methods are all present in current implementation objects exported through the runtime shim but absent from the inspected `.d.ts`. See [Shops](/api/shops), [Trade](/api/trade), [Dialogue](/api/dialogue), and [Quests](/api/quests).
+These methods are all present in current implementation objects exported through the runtime shim but absent from the inspected `.d.ts`. `Shop.sell()` also has **signature drift**: runtime accepts an optional third `pick` callback for selecting among same-name backpack slots, while the package declaration only exposes `sell(name, n)`. See [Shops](/api/shops), [Trade](/api/trade), [Dialogue](/api/dialogue), and [Quests](/api/quests).
 
 ### `Traversal`
 
@@ -121,14 +124,11 @@ Traversal.requestRepath(reason?)
 
 ### `AbstractBot`
 
-```ts
-loopCadence
-on(event, callback)
-bindLog(sink)
-disposeSubscriptions()
-```
+`loopCadence` is useful script-facing runtime behavior that is absent from the external declaration and is documented in [Bots](/api/bots).
 
-`loopCadence` is useful script-facing runtime behavior and is documented in [Bots](/api/bots). `bindLog()` and `disposeSubscriptions()` are host lifecycle plumbing; they are reachable because the class is exported, but scripts should not normally take ownership of them. `on()` is likewise runtime-backed but subscription lifecycle should be handled carefully.
+`AbstractBot.on(event, callback)` needs a more precise classification: it **is declared** by the package, but as a `protected` member. The runtime method is naturally reachable on the JavaScript object, so this is an access-modifier/runtime-shape difference rather than a missing declaration. Normal subclasses should use `this.on(...)`; it automatically participates in the bot subscription lifecycle.
+
+`bindLog(sink)` and `disposeSubscriptions()` are runtime host-lifecycle plumbing. They are reachable because the class implementation is exported, but scripts should not normally take ownership of them.
 
 ## Top-Level Declaration Bugs
 
@@ -160,7 +160,15 @@ See [Client-ABI-Only APIs](/api/client-only).
 
 `AcquireTask` is declared with optional `options` and `group` fields, but the current implementation class does not define those fields. Do not rely on them as real instance state.
 
-The current source also has `LoopCadence`/`loopCadence` behavior that is not represented by the external package declaration.
+The current source has `LoopCadence`/`loopCadence` behavior that is not represented by the external package declaration.
+
+The runtime `SettingDef` supports `step`, `color`, `optionsFrom` and `csvToggle`, while the external `.d.ts` omits those fields. See [Settings](/api/settings).
+
+The runtime `registerScript(manifest, origin?)` returns an internal `ScriptMeta`; the external declaration says `void`. External scripts should use the normal default-export `defineBot(...)` pattern and should not depend on that undeclared return value.
+
+`Shop.sell(name, n, pick?)` accepts a third runtime selector callback, while the external declaration only contains `Shop.sell(name, n)`. This is signature drift rather than a missing member. See [Shops](/api/shops).
+
+The bank catalog also has type-level drift: current source can represent setting-gated bank requirements and NPC-opened/approach-ranked banks beyond the narrower external declaration. Treat the detailed runtime catalog shape as version-sensitive until the package types catch up.
 
 ## Internal Source-Only Surface
 
@@ -178,4 +186,4 @@ For this site, current rs2b2t source wins whenever the older web reference disag
 
 A change is not considered comprehensively documented until all applicable layers are checked at **member level**: runtime shim, `.d.ts`, client ABI, implementation, upstream reference docs, and this site's detailed API page.
 
-The generated report is deliberately a discovery aid. Generic records/settings schemas and implementation plumbing still require manual classification before a finding is presented as external API drift.
+The generated report is deliberately a discovery aid. Generic records/settings schemas and implementation plumbing still require manual classification before a finding is presented as external API drift. Member presence alone also cannot prove matching parameter types, return types, access modifiers or semantics, so those dimensions require separate review.
