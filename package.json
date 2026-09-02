@@ -6,9 +6,11 @@
   "scripts": {
     "docs:dev": "vitepress docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "audit:api": "node tools/audit-api.mjs"
   },
   "devDependencies": {
+    "typescript": "^5.9.2",
     "vitepress": "^1.6.4"
   }
 }
