@@ -7,7 +7,7 @@
     "docs:dev": "vitepress docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "audit:api": "node tools/audit-api.mjs"
+    "audit:api": "node tools/audit-api-v2.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.2",
