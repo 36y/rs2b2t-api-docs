@@ -67,7 +67,7 @@ const target = Npcs.query()
   .nearest();
 ```
 
-Filters:
+Declared filters:
 
 ```ts
 name(...names)
@@ -76,6 +76,19 @@ within(dist)
 inside({ minX, maxX, minZ, maxZ })
 where(predicate)
 ```
+
+Current implementation additionally provides:
+
+```ts
+withinOf(origin: WorldTile, dist: number)
+nearestPreferLocal(preferRadius: number)
+```
+
+`withinOf()` uses a Chebyshev-radius disk around an arbitrary world tile, useful for camp anchors, bank stands and furnaces.
+
+`nearestPreferLocal()` first restricts to entities within `preferRadius` of the player when that local cluster is non-empty, then chooses the nearest from that pool.
+
+**Compatibility note:** both methods exist on the current runtime-exported `EntityQuery` implementation, but the inspected `packages/rs2b0t-api/index.d.ts` does not declare them yet.
 
 Terminals:
 
