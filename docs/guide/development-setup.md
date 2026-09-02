@@ -1,10 +1,10 @@
 # Script Development Setup
 
-This guide takes you from a fresh machine and a fork of `rs2b2t/rs2b0t` to a compiled external script that the client can load.
+This guide takes you from a fresh machine to a compiled external script running in rs2b2t.
 
 The recommended starting point is the upstream [`docs/script-template/`](https://github.com/rs2b2t/rs2b0t/tree/main/docs/script-template). It is already configured for TypeScript, Bun, `@rs2b0t/api`, ESM output, and the external-script bundle format expected by the client.
 
-You do **not** need to build a TypeScript project from scratch.
+You do **not** need to create a TypeScript project from scratch, and for your first script you do **not** need to run a web server. The client can load the built `bot.js` file directly from your computer.
 
 ## What You Will End Up With
 
@@ -27,7 +27,7 @@ rs2b0t/
          └─ bot.js
 ```
 
-`src/ExampleBot.ts` is the source you edit. `dist/bot.js` is the bundle you load into rs2b2t.
+`src/ExampleBot.ts` is the TypeScript source you edit. `dist/bot.js` is the compiled file you load into rs2b2t.
 
 ## 1. Install the Basic Tools
 
@@ -36,7 +36,24 @@ You need:
 - **Git** — to clone and update your fork.
 - **Bun** — the package manager and bundler used by the official template.
 - **A code editor** — VS Code is a common choice, but any TypeScript-capable editor works.
-- **rs2b2t** — running far enough that you can open its script panel and use **Load URL**.
+- **rs2b2t** — the easiest option is the official web client.
+
+### Use the Official Web Client
+
+You do not need to build the rs2b2t client locally just to develop an external script. You can use the official web client at:
+
+[rs2b2t Web Client](https://rs2b2t.com/rs2b0t)
+
+Choose whichever layout suits you:
+
+| Client | Best for | Link |
+| --- | --- | --- |
+| **Single Bot** | One account in one tab. The classic client. | [Open Single Bot](https://w1.rs2b2t.com/rs2b0t) |
+| **Multi Bot** | Several accounts in one tab with a live thumbnail of each. | [Open Multi Bot](https://w1.rs2b2t.com/rs2b0t/wall) |
+
+For Multi Bot, keep the tab visible while running scripts. Browsers throttle backgrounded tabs, which can affect timing.
+
+Reference images are available for the [Single Bot](https://rs2b2t.com/img/rs2b0t/single.jpg) and [Multi Bot](https://rs2b2t.com/img/rs2b0t/multi.jpg) layouts.
 
 ### Check Git
 
@@ -72,7 +89,7 @@ A version number means Bun is ready.
 
 ## 2. Fork rs2b2t/rs2b0t
 
-Open the upstream repository:
+Open:
 
 [rs2b2t/rs2b0t on GitHub](https://github.com/rs2b2t/rs2b0t)
 
@@ -82,7 +99,7 @@ Use GitHub's **Fork** button to create your own copy. Your fork will normally be
 https://github.com/<your-username>/rs2b0t
 ```
 
-Keeping your first external scripts inside your fork makes the template's local `@rs2b0t/api` dependency easy to use while you are learning.
+The upstream template can also be copied into a completely separate repository, but keeping your first script inside your fork makes its local `@rs2b0t/api` dependency work without extra package setup.
 
 ## 3. Clone Your Fork
 
@@ -103,13 +120,15 @@ git status
 
 You should see the current branch and a clean working tree.
 
-It is also useful to confirm the template exists:
+Confirm the script template exists.
+
+macOS / Linux:
 
 ```bash
 ls docs/script-template
 ```
 
-On PowerShell you can use:
+Windows PowerShell:
 
 ```powershell
 Get-ChildItem docs/script-template
@@ -119,7 +138,7 @@ The template contains `README.md`, `package.json`, `tsconfig.json`, `bun.lock`, 
 
 ## 4. Copy the Official Template
 
-Do not edit `docs/script-template/` directly. Copy it and turn the copy into your script project.
+Do not edit `docs/script-template/` directly. Copy it and turn the copy into your own script project.
 
 ### macOS / Linux
 
@@ -141,17 +160,21 @@ Copy-Item -Recurse docs/script-template my-scripts/my-first-script
 Set-Location my-scripts/my-first-script
 ```
 
-The template's dependency is currently:
+The template currently depends on the API package with:
 
 ```json
 "@rs2b0t/api": "file:../../packages/rs2b0t-api"
 ```
 
-Because `my-scripts/my-first-script` is still two directory levels below the repository root, that path continues to resolve correctly to the fork's `packages/rs2b0t-api/` directory. You do not need to change it for this layout.
+Because `my-scripts/my-first-script` is still two directories below the repository root, that path correctly resolves to:
 
-If you later move the script into a completely separate repository, you must repoint that `file:` dependency to a reachable copy of `@rs2b0t/api`.
+```text
+rs2b0t/packages/rs2b0t-api
+```
 
-## 5. Understand the Template Before Changing It
+You do not need to change it for the layout used in this guide.
+
+## 5. Understand the Template
 
 The important files are:
 
@@ -163,54 +186,52 @@ bun.lock             locked dependency versions
 dist/bot.js          generated after the first build
 ```
 
-The supplied `package.json` has two useful commands:
+The supplied `package.json` contains:
 
 ```json
-"build": "bun build src/ExampleBot.ts --outfile dist/bot.js --format esm",
-"watch": "bun build src/ExampleBot.ts --outfile dist/bot.js --format esm --watch"
+"scripts": {
+  "build": "bun build src/ExampleBot.ts --outfile dist/bot.js --format esm",
+  "watch": "bun build src/ExampleBot.ts --outfile dist/bot.js --format esm --watch"
+}
 ```
 
 `bun run build` creates one ESM bundle at `dist/bot.js`. `bun run watch` stays running and rebuilds whenever you save the source file.
 
-The TypeScript configuration enables strict checking and includes DOM types, which is why things such as `CanvasRenderingContext2D` work in `onPaint()`.
+The TypeScript configuration uses strict checking and includes DOM types, which is why browser types such as `CanvasRenderingContext2D` are available to `onPaint()`.
 
 ## 6. Install the Script Dependencies
 
-Still inside `my-scripts/my-first-script`, run:
-
-```bash
-bun install
-```
-
-This installs TypeScript and links your script to the `@rs2b0t/api` package in the fork.
-
-If installation fails with an error mentioning `../../packages/rs2b0t-api`, first check that your current folder really is:
+Still inside:
 
 ```text
 rs2b0t/my-scripts/my-first-script
 ```
 
-and that this exists:
+run:
 
-```text
-rs2b0t/packages/rs2b0t-api
+```bash
+bun install
 ```
+
+This installs the template's development dependencies and links your script to the `@rs2b0t/api` package in your fork.
+
+If installation fails with an error mentioning `../../packages/rs2b0t-api`, confirm your script is in the directory layout shown above and that `rs2b0t/packages/rs2b0t-api` exists.
 
 ## 7. Build the Untouched Example First
 
-Before writing any code, prove that the toolchain works:
+Before writing your own code, prove that the development environment works:
 
 ```bash
 bun run build
 ```
 
-The template builds:
+A successful build creates:
 
 ```text
 dist/bot.js
 ```
 
-Check that it exists.
+Check it exists.
 
 macOS / Linux:
 
@@ -218,13 +239,13 @@ macOS / Linux:
 ls -lh dist/bot.js
 ```
 
-PowerShell:
+Windows PowerShell:
 
 ```powershell
 Get-Item dist/bot.js
 ```
 
-If the untouched template does not build, fix the environment before changing `ExampleBot.ts`. This prevents setup problems and script problems from becoming mixed together.
+If the untouched template does not build, fix that first. This keeps environment problems separate from bugs in your own script.
 
 ## 8. What the Example Bot Does
 
@@ -234,21 +255,9 @@ Open:
 src/ExampleBot.ts
 ```
 
-The supplied example is a small external `BoneBurier` bot. It demonstrates several important rs2b2t patterns in one file:
+The supplied example is an external `BoneBurier`. It demonstrates public `@rs2b0t/api` imports, `LoopingBot`, `Execution` waits, inventory state, ground-item queries, interactions, state verification, bot-scoped events, logging, and an `onPaint()` overlay.
 
-- imports exclusively from `@rs2b0t/api`;
-- extends `LoopingBot`;
-- waits for the game using `Execution`;
-- reads inventory state;
-- queries nearby ground items;
-- interacts with entities;
-- verifies that actions actually changed game state;
-- listens to bot-scoped events;
-- logs useful progress;
-- draws an overlay with `onPaint()`;
-- default-exports a `defineBot({...})` registration.
-
-The final export is important:
+The end of the file default-exports a `defineBot({...})` manifest:
 
 ```ts
 export default defineBot({
@@ -259,56 +268,55 @@ export default defineBot({
 });
 ```
 
-The client loads that default export from your bundle. Do not replace it with a normal `new BoneBurier()` export.
+That default export is how the external-script loader discovers your bot. Keep this pattern when creating your own script.
 
-## 9. Serve `dist/bot.js`
+## 9. Load `dist/bot.js` Directly — Easiest Method
 
-The client loads external bundles by URL, so the built JavaScript file must be available over HTTP.
+For your first script, **you do not need to serve the file over HTTP**.
 
-A convenient development option is to serve the `dist` directory with Bun. From the script directory, open a second terminal and run:
+The current rs2b2t script library has a **Load local script…** button that accepts `.js` and `.mjs` files. Internally, the client creates a temporary browser URL for the file and imports it for you.
 
-```bash
-bunx serve dist -l 8000
-```
+After `bun run build`:
 
-Leave that terminal running.
-
-Your bundle should then be available at:
-
-```text
-http://localhost:8000/bot.js
-```
-
-Open that URL in your browser. If you see JavaScript source or the file downloads successfully, the server is reaching the bundle.
-
-If port `8000` is already occupied, choose another port, for example:
-
-```bash
-bunx serve dist -l 8080
-```
-
-and use `http://localhost:8080/bot.js` instead.
-
-## 10. Load the Script in rs2b2t
-
-With rs2b2t running:
-
-1. Open the client's script panel.
-2. Choose **Load URL**.
-3. Enter the bundle URL, for example:
+1. Open the official Single Bot or Multi Bot web client.
+2. Open the rs2b2t script panel / script library.
+3. Find **load external script**.
+4. Click **Load local script…**.
+5. Browse to your project folder.
+6. Open:
 
 ```text
-http://localhost:8000/bot.js
+my-scripts/my-first-script/dist/bot.js
 ```
 
-4. Load the script.
-5. Select/start the bot from the client UI.
+7. The client should report that the script loaded and select it.
+8. Start the bot from the client UI.
 
-The package shim expects the rs2b2t client to have installed its scripting ABI at `globalThis.__rs2b0t`. If you try to execute the bundle as an ordinary webpage or Node/Bun program, it is expected to fail because that client ABI is not present.
+That is the complete first-run path:
 
-## 11. Make Your First Safe Change
+```text
+bun run build
+        ↓
+dist/bot.js
+        ↓
+Load local script…
+        ↓
+select dist/bot.js
+        ↓
+start the bot
+```
 
-Once the untouched example builds and loads, change something that cannot break game logic. For example, change the metadata:
+No localhost server, hosting account, upload, port number, or networking knowledge is required.
+
+::: tip Start with local loading
+Use **Load local script…** while learning and developing. **Load URL** is useful later if you specifically want the client to fetch your built bundle from a URL.
+:::
+
+## 10. Make Your First Safe Change
+
+Once the untouched example builds and loads, change something simple so you can prove the edit/build/load cycle works.
+
+For example, change the manifest metadata:
 
 ```ts
 export default defineBot({
@@ -319,57 +327,72 @@ export default defineBot({
 });
 ```
 
-You could also change the overlay text in `onPaint()`.
+You could also change the text drawn in `onPaint()`.
 
-Then rebuild:
+Save the file and rebuild:
 
 ```bash
 bun run build
 ```
 
-Reload the URL/script in the client and confirm your new name or paint text appears.
+If the old copy is currently loaded, stop it before reloading. Then use **Load local script…** again and select the newly rebuilt `dist/bot.js`.
 
-At this point you have completed the entire development cycle:
+Confirm the new script name or paint text appears.
+
+You have now completed the normal development cycle:
 
 ```text
-edit TypeScript → build → serve → load → test
+edit TypeScript → build → load local file → test
 ```
 
-## 12. Use Watch Mode While Developing
+## 11. Use Watch Mode While Developing
 
-Re-running the build command after every edit gets tedious. Use the template's watch command:
+Re-running the build command after every edit becomes repetitive. Instead run:
 
 ```bash
 bun run watch
 ```
 
-A useful development setup is therefore two terminals.
+Leave that terminal open. Every time you save `src/ExampleBot.ts`, Bun rebuilds `dist/bot.js` automatically.
 
-Terminal 1:
+Your normal workflow becomes:
 
-```bash
-cd rs2b0t/my-scripts/my-first-script
-bun run watch
+```text
+1. bun run watch
+2. edit and save ExampleBot.ts
+3. stop the old running script if necessary
+4. Load local script…
+5. choose dist/bot.js
+6. test
 ```
 
-Terminal 2:
+You only need one terminal for this workflow.
 
-```bash
-cd rs2b0t/my-scripts/my-first-script
-bunx serve dist -l 8000
+## 12. Optional: Load From a URL
+
+The script library also supports **Load URL**. This is useful when you intentionally want to host or serve `dist/bot.js`, but it is not required for beginner development.
+
+The upstream template describes this workflow as serving `dist/bot.js` over HTTP and giving the client its URL. If you later want to use that method, the important idea is simply that the URL must point directly to the built JavaScript module.
+
+For example:
+
+```text
+https://example.com/my-bot/bot.js
 ```
 
-Now saving `src/ExampleBot.ts` automatically rebuilds `dist/bot.js`. Reload the script in rs2b2t when you want to test the new bundle.
+For day-to-day local development, **Load local script…** is simpler and avoids local-server and browser cross-origin setup entirely.
 
-## 13. Rename the Example Into Your Own Bot
+## 13. Turn the Example Into Your Own Bot
 
-For your first script it is fine to leave the filename as `ExampleBot.ts`. Once you are comfortable, you can rename it, for example:
+For your first experiments it is fine to keep the filename `ExampleBot.ts`.
+
+When you want a real name, rename it, for example:
 
 ```text
 src/CasketOpener.ts
 ```
 
-If you rename the entry file, update both build commands in `package.json`:
+Then update both commands in `package.json`:
 
 ```json
 "scripts": {
@@ -378,41 +401,21 @@ If you rename the entry file, update both build commands in `package.json`:
 }
 ```
 
-You should also give the project a useful package name:
+You can also rename the package:
 
 ```json
 "name": "casket-opener"
 ```
 
-Then run another clean build:
+Run another build after changing the entry filename:
 
 ```bash
 bun run build
 ```
 
-## 14. Keep Your Script in Git
+## 14. A Good First Script Structure
 
-From the repository root, inspect what you created:
-
-```bash
-git status
-```
-
-When you are happy with the first version:
-
-```bash
-git add my-scripts/my-first-script
-git commit -m "add my first external script"
-git push
-```
-
-Your script source is now backed up in your fork and can evolve independently of the upstream template.
-
-When you later pull changes from upstream, review changes to `packages/rs2b0t-api` and the official template because they can expose new API capabilities or template improvements.
-
-## 15. A Good First Script Structure
-
-Do not try to automate an entire activity in your first edit. Start with a small observable loop:
+Start with something small enough that you can see it working before adding game interactions:
 
 ```ts
 import { defineBot, Execution, Game, LoopingBot } from '@rs2b0t/api';
@@ -447,13 +450,33 @@ export default defineBot({
 });
 ```
 
-Build and load this before adding interactions. Then add one API family at a time: inventory, entities, navigation, banking, dialogue, and so on.
+Build this, load `dist/bot.js`, and confirm you see its log/overlay before adding inventory actions, NPC interactions, banking, navigation, or other automation.
+
+## 15. Keep Your Script in Git
+
+From the repository root, inspect what changed:
+
+```bash
+git status
+```
+
+When you are happy with your first version:
+
+```bash
+git add my-scripts/my-first-script
+git commit -m "add my first external script"
+git push
+```
+
+Your source is now backed up in your fork.
+
+When upstream changes, review updates to `packages/rs2b0t-api` and `docs/script-template`. They may contain new API capabilities, declaration fixes, or improvements to the recommended project setup.
 
 ## 16. Using AI or a Coding Assistant
 
-AI tools can be useful for external scripts, but rs2b2t has its own API and runtime rules. A model that guesses based on other RuneScape clients can produce convincing code that does not exist in `@rs2b0t/api`.
+AI tools can be useful for external scripts, but rs2b2t has its own API and runtime rules. A model that guesses based on another RuneScape client can produce convincing TypeScript that simply does not exist in `@rs2b0t/api`.
 
-Give the assistant this documentation site and the source repository, and make the boundary explicit. A useful starting prompt is:
+Give the assistant this documentation site and the current rs2b2t source, then make the package boundary explicit. A useful starting prompt is:
 
 ```text
 I am writing an external rs2b2t TypeScript script based on the official
@@ -474,9 +497,9 @@ from game state instead of assuming a click succeeded.
 Keep long-running game logic out of onPaint().
 ```
 
-When asking AI to change your bot, include the current script rather than asking it to recreate the whole project. The official template already solves the bundling, TypeScript, module, and ABI setup.
+When asking an AI to change your bot, give it your existing source file rather than asking it to recreate the whole project. The official template already provides the bundling, module, TypeScript, and API setup.
 
-A particularly useful request is:
+A useful review prompt is:
 
 ```text
 Audit this external rs2b2t script for invented or undocumented API calls,
@@ -488,7 +511,7 @@ stuck. Do not rewrite it until you have listed the issues.
 
 ### `bun: command not found`
 
-Reopen the terminal after installing Bun. If it still fails, follow Bun's installer instructions for adding Bun to your `PATH`.
+Reopen your terminal after installing Bun. If it still fails, make sure Bun's install directory has been added to your `PATH`.
 
 ### `Cannot find module '@rs2b0t/api'`
 
@@ -498,16 +521,16 @@ Run:
 bun install
 ```
 
-If that does not fix it, check `package.json` and confirm the relative path still reaches:
-
-```text
-rs2b0t/packages/rs2b0t-api
-```
-
-For the layout used in this guide it should be:
+Then confirm `package.json` contains the correct relative dependency for the layout used here:
 
 ```json
 "@rs2b0t/api": "file:../../packages/rs2b0t-api"
+```
+
+and confirm this folder exists:
+
+```text
+rs2b0t/packages/rs2b0t-api
 ```
 
 ### `dist/bot.js` does not exist
@@ -518,31 +541,41 @@ Run:
 bun run build
 ```
 
-Read the first TypeScript/build error shown in the terminal. Fix that error before worrying about the client.
+Read the first build error in the terminal and fix that before trying to load the script.
 
-### The browser cannot open `localhost:8000/bot.js`
+### I cannot find `dist/bot.js` in the file picker
 
-Make sure the static-file server is still running:
+Make sure you built the script first. The file is generated; it does not exist in a fresh template until `bun run build` succeeds.
 
-```bash
-bunx serve dist -l 8000
+The expected path is:
+
+```text
+rs2b0t/my-scripts/my-first-script/dist/bot.js
 ```
 
-Also verify that `dist/bot.js` exists before starting the server.
+### The client says the module default export is not a `defineBot(...)` manifest
 
-### The URL loads, but rs2b2t rejects the bundle
+Check the bottom of your entry file. It must default-export `defineBot({...})`.
 
-Check that the script still default-exports `defineBot({...})`. Also check for an ABI-version mismatch: `@rs2b0t/api` is a shim over the API installed by the client and refuses incompatible ABI versions.
+### The client says the script is already running or paused
 
-### TypeScript accepts something but the behavior is wrong
+Stop the currently loaded copy before reloading the same script. The loader deliberately refuses to replace an active script with the same name.
 
-Compilation only proves the types are acceptable. Interaction success should normally be verified by observing game state with `Execution.delayUntil()` or tick-based waits. Continue with [Writing Reliable Scripts](/guide/patterns).
+### The script builds but fails when loaded
+
+The `@rs2b0t/api` package is a runtime shim over the API installed by the client. A client/API ABI-version mismatch can therefore fail at load time even though TypeScript compilation succeeded.
+
+### TypeScript accepts something but the bot behaves incorrectly
+
+Compilation only proves the types are acceptable. A dispatched interaction is not proof that the game completed the action. Verify important outcomes from game state and continue with [Writing Reliable Scripts](/guide/patterns).
 
 ## Next Steps
 
-Once you can repeatedly edit, build, serve, and load the script, your environment is finished. From there:
+Once you can repeatedly edit, build, load `dist/bot.js`, and test your changes, your development environment is ready.
 
-- read [Writing Reliable Scripts](/guide/patterns) before building longer action sequences;
-- use the [API Reference](/api/) to discover supported script APIs;
-- use [Canvas & Overlays](/api/canvas) for status displays;
-- check [Coverage & Drift Audit](/api/coverage) before relying on unusual or under-typed runtime behavior.
+Continue with:
+
+- [Writing Reliable Scripts](/guide/patterns) for state verification, waits, recovery, and bot structure.
+- [API Reference](/api/) to discover supported external scripting APIs.
+- [Canvas & Overlays](/api/canvas) for `onPaint()` displays.
+- [Coverage & Drift Audit](/api/coverage) before relying on unusual or under-typed runtime behavior.
