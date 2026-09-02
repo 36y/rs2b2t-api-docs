@@ -1,6 +1,6 @@
 # API reference
 
-The supported external surface is defined by the intersection of the client ABI, runtime shim and package declarations.
+The supported external surface is defined by the intersection of the client ABI, runtime shim and package declarations. When those layers disagree, the detailed pages identify the drift instead of silently treating implementation details as portable package API.
 
 ## Main external modules
 
@@ -25,4 +25,8 @@ The supported external surface is defined by the intersection of the client ABI,
 | Catalogs | Banks, fishing, mining, woodcutting, walking, cows, runecrafting |
 | Escape hatch | `reader` |
 
-Use the left navigation for detailed pages.
+## Audit matrix
+
+See [API coverage and drift](/api/coverage) for the symbol-by-symbol runtime export inventory, type-only exports, client-ABI-only names, and confirmed mismatches between `index.js`, `index.d.ts` and current implementation source.
+
+Use the left navigation for detailed API pages.
