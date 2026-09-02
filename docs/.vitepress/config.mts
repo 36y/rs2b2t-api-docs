@@ -18,6 +18,7 @@ export default defineConfig({
     sidebar: [
       { text: 'Start Here', items: [
         { text: 'Getting Started', link: '/guide/getting-started' },
+        { text: 'Script Development Setup', link: '/guide/development-setup' },
         { text: 'Writing Reliable Scripts', link: '/guide/patterns' }
       ]},
       { text: 'API Reference', items: [
