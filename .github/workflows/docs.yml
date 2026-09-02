@@ -40,7 +40,7 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: build
     environment:
-      name: github-pages
+      name: rs2b2t-api-docs
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
