@@ -6,28 +6,31 @@ The recommended starting point is the upstream [`docs/script-template/`](https:/
 
 You do **not** need to create a TypeScript project from scratch, and for your first script you do **not** need to run a web server. The client can load the built `bot.js` file directly from your computer.
 
-## What You Will End Up With
+## Your Script Workspace
 
-By the end of this guide you will have:
+The rs2b0t repository contains many other files and directories used to build the client itself. You do not need to understand or modify them to write an external script.
+
+After copying the template, the parts of the repository relevant to this guide will look like this:
 
 ```text
 rs2b0t/
+├─ ...                         # rest of the rs2b0t repository
 ├─ packages/
-│  └─ rs2b0t-api/
+│  └─ rs2b0t-api/              # API used by your external script
 ├─ docs/
-│  └─ script-template/
+│  └─ script-template/         # original template — leave unchanged
 └─ my-scripts/
-   └─ my-first-script/
+   └─ my-first-script/         # your script workspace
       ├─ src/
-      │  └─ ExampleBot.ts
+      │  └─ ExampleBot.ts      # your TypeScript source
       ├─ package.json
       ├─ tsconfig.json
       ├─ bun.lock
       └─ dist/
-         └─ bot.js
+         └─ bot.js             # generated build loaded into rs2b2t
 ```
 
-`src/ExampleBot.ts` is the TypeScript source you edit. `dist/bot.js` is the compiled file you load into rs2b2t.
+For this guide, your work happens inside `my-scripts/my-first-script/`. The template references `packages/rs2b0t-api/` for the external scripting API. `src/ExampleBot.ts` is the TypeScript source you edit, and `dist/bot.js` is the generated file you load into rs2b2t.
 
 ## 1. Install the Basic Tools
 
