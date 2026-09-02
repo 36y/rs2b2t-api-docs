@@ -4,6 +4,8 @@
 
 All standard bots ultimately extend `AbstractBot`.
 
+The current client implementation has this effective shape:
+
 ```ts
 type LoopCadence =
   | { kind: 'frame' }
@@ -45,7 +47,9 @@ this.loopCadence = { kind: 'server-tick', ticks: 2 };
 this.loopCadence = { kind: 'time', ms: 1500 };
 ```
 
-This behavior is implemented by `resolveLoopCadence()` in the client source. The repository reference docs describe the same policy.
+The current upstream reference docs describe this policy too.
+
+**Declaration drift:** the inspected `packages/rs2b0t-api/index.d.ts` still declares `loopDelay` but not `loopCadence`/`LoopCadence`. Because `AbstractBot` itself is the runtime-exported implementation class, the property exists at runtime, but external TypeScript consumers are currently under-typed.
 
 ## `LoopingBot`
 
@@ -82,4 +86,4 @@ Behavior-tree-style bot using `BranchTask` and `LeafTask`; the tree is evaluated
 
 ## Surface classification
 
-The client implementation contains some lifecycle/runtime details that can precede package declaration updates. For external scripts, treat the installed package declaration and runtime shim as the compatibility boundary; this page calls out implementation behavior where it affects how public bot classes actually run.
+The client implementation contains lifecycle/runtime details that can precede package declaration updates. See [API coverage and drift](/api/coverage) for the audited package/ABI matrix.
