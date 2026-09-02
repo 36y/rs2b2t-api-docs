@@ -1,5 +1,7 @@
 # Getting started
 
+If you have not created a script project yet, start with [Script Development Setup](/guide/development-setup). It walks through the template, Bun, building `dist/bot.js`, and loading the file directly into the rs2b2t client. Come back here once the project builds successfully.
+
 rs2b0t external scripts compile against `@rs2b0t/api`. The package is a runtime shim over the API object installed by the rs2b0t client at `globalThis.__rs2b0t`.
 
 ## Minimal bot
