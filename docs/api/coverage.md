@@ -7,7 +7,7 @@ This page records the current `rs2b2t/rs2b0t` scripting surface against four lay
 3. `packages/rs2b0t-api/index.d.ts` — TypeScript declarations.
 4. `src/bot/api/**` and `docs/reference/**` — implementation and intended behavior.
 
-The audit snapshot used here is upstream `main` at tree `56bb1baab48bd77f0d57125a73bb6189f04aae7b`.
+The audit was performed against upstream `main`; GitHub code-search results observed during the audit resolved to commit `56bb1baab48bd77f0d57125a73bb6189f04aae7b`, while direct default-branch file reads were also re-fetched before documenting mismatches.
 
 ## Status meanings
 
