@@ -40,20 +40,29 @@ await Traversal.walkResilient(target, {
 });
 ```
 
-## Wait for bank contents
+## Wait for bank readiness
+
+Opening the bank and receiving its item snapshot are separate states. Do not use `Bank.loaded()` as the readiness oracle: it means the current bank item list is non-empty, so a legitimately empty bank never becomes "loaded".
+
+The current runtime provides the authoritative readiness helper:
 
 ```ts
 if (await Banking.open()) {
-  const loaded = await Execution.delayUntil(
-    () => Bank.loaded(),
-    3000
-  );
+  const ready = await BankRuntime.waitReady(3000, msg => this.log(msg));
 
-  if (!loaded) {
-    this.log('Bank opened but contents did not load');
+  if (!ready) {
+    this.log('Bank opened but its snapshot did not become ready');
     return;
   }
 }
+```
+
+Until `Bank.waitReady()` is added to the external declaration, expose only that runtime member locally:
+
+```ts
+const BankRuntime = Bank as typeof Bank & {
+  waitReady(timeoutMs?: number, log?: (msg: string) => void): Promise<boolean>;
+};
 ```
 
 ## Keep event callbacks short
