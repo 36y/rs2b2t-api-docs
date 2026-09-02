@@ -25,17 +25,14 @@ await Traversal.walkTo(new Tile(3208, 3220, 0), {
 
 ## Teleport policy helpers
 
-The current `Traversal` implementation exposes:
+Both the current runtime and package declaration expose:
 
 ```ts
 Traversal.pureWalk
 Traversal.withTeles
-Traversal.teleportsEnabled(): boolean
 ```
 
-`pureWalk` forces teleport edges off for one walk. `withTeles` forces them on. `teleportsEnabled()` reads the current global `navTeleports` setting.
-
-Example:
+`pureWalk` forces teleport edges off for one walk. `withTeles` forces them on.
 
 ```ts
 await Traversal.walkTo(dest, {
@@ -44,7 +41,24 @@ await Traversal.walkTo(dest, {
 });
 ```
 
-The source also defines top-level `NAV_PURE_WALK` and `NAV_WITH_TELES` constants, but the inspected `packages/rs2b0t-api/index.js` runtime shim does **not** export those names directly. External scripts should therefore prefer `Traversal.pureWalk` and `Traversal.withTeles` when their installed declaration supports them, rather than importing the top-level constants.
+The current implementation additionally provides:
+
+```ts
+Traversal.teleportsEnabled(): boolean
+```
+
+It reads the current global `navTeleports` setting. This method is runtime-backed but is missing from the inspected package `.d.ts`.
+
+### Top-level constant declaration bug
+
+The package `.d.ts` also declares top-level `NAV_PURE_WALK` and `NAV_WITH_TELES` exports. The current `packages/rs2b0t-api/index.js` runtime shim does **not** export those top-level names. A direct import can therefore type-check but fail at runtime.
+
+Prefer the real runtime properties:
+
+```ts
+Traversal.pureWalk
+Traversal.withTeles
+```
 
 ## Forced repath
 
@@ -54,9 +68,7 @@ Current implementation:
 Traversal.requestRepath(reason?: string): void
 ```
 
-This asks the active or next world walk to abandon path stickiness and repath immediately.
-
-**Compatibility note:** `pureWalk`, `withTeles`, `teleportsEnabled()` and `requestRepath()` exist in the current client implementation. If the installed `@rs2b0t/api` declaration does not yet list them, that is package declaration drift; do not assume older external packages type them correctly.
+This asks the active or next world walk to abandon path stickiness and repath immediately. It is runtime-backed but not yet declared in the inspected package `.d.ts`.
 
 ## `DirectNavigator`
 
