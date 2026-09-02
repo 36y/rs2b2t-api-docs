@@ -51,8 +51,6 @@ Choose whichever layout suits you:
 | **Single Bot** | One account in one tab. The classic client. | [Open Single Bot](https://w1.rs2b2t.com/rs2b0t) |
 | **Multi Bot** | Several accounts in one tab with a live thumbnail of each. | [Open Multi Bot](https://w1.rs2b2t.com/rs2b0t/wall) |
 
-For Multi Bot, keep the tab visible while running scripts. Browsers throttle backgrounded tabs, which can affect timing.
-
 Reference images are available for the [Single Bot](https://rs2b2t.com/img/rs2b0t/single.jpg) and [Multi Bot](https://rs2b2t.com/img/rs2b0t/multi.jpg) layouts.
 
 ### Check Git
