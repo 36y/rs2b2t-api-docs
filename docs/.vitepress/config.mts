@@ -32,11 +32,11 @@ export default defineConfig({
         { text: 'Navigation', link: '/api/navigation' }, { text: 'Events', link: '/api/events' },
         { text: 'Settings', link: '/api/settings' }, { text: 'Canvas & Overlays', link: '/api/canvas' },
         { text: 'Acquisition & Tools', link: '/api/acquisition' },
-        { text: 'World Catalogs', link: '/api/catalogs' }, { text: 'Low-Level Reader', link: '/api/reader' },
-        { text: 'Client-ABI-Only APIs', link: '/api/client-only' }
+        { text: 'World Catalogs', link: '/api/catalogs' }, { text: 'Low-Level Reader', link: '/api/reader' }
       ]},
       { text: 'API Internals & Audit', items: [
         { text: 'ABI and Package Boundary', link: '/concepts/abi' },
+        { text: 'Client-ABI-Only APIs', link: '/api/client-only' },
         { text: 'Coverage & Drift Audit', link: '/api/coverage' },
         { text: 'Generated Member Audit', link: '/api/generated-audit' }
       ]},
