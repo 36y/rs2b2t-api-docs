@@ -20,10 +20,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check out current rs2b2t source
+        uses: actions/checkout@v4
+        with:
+          repository: rs2b2t/rs2b0t
+          path: upstream-rs2b0t
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm install
+      - name: Generate API symbol/member audit
+        run: npm run audit:api -- upstream-rs2b0t --docs . --out docs/api/generated-audit.md --json research/generated-api-audit.json
       - run: npm run docs:build
       - uses: actions/upload-pages-artifact@v3
         with:
