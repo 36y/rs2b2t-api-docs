@@ -30,10 +30,20 @@ export default defineConfig({
         { text: 'Shops', link: '/api/shops' }, { text: 'Trade', link: '/api/trade' },
         { text: 'Dialogue', link: '/api/dialogue' }, { text: 'Quests', link: '/api/quests' },
         { text: 'Navigation', link: '/api/navigation' }, { text: 'Events', link: '/api/events' },
-        { text: 'Packet Subscriptions (InTree)', link: '/api/packet-subscriptions' },
         { text: 'Settings', link: '/api/settings' }, { text: 'Canvas & Overlays', link: '/api/canvas' },
         { text: 'Acquisition & Tools', link: '/api/acquisition' },
         { text: 'World Catalogs', link: '/api/catalogs' }, { text: 'Low-Level Reader', link: '/api/reader' }
+      ]},
+      { text: 'InTree Packet API', items: [
+        { text: 'Overview', link: '/api/packet-subscriptions' },
+        { text: 'Architecture & Timing', link: '/api/packet-subscriptions#1-architecture-and-timing' },
+        { text: 'Subscription API & Payload Types', link: '/api/packet-subscriptions#2-complete-api-reference' },
+        { text: 'Packet Opcode Reference (69)', link: '/api/packet-subscriptions#3-incoming-packet-catalogue' },
+        { text: 'Lifecycle & Action Safety', link: '/api/packet-subscriptions#4-lifecycle-and-action-safety' },
+        { text: 'TypeScript Examples', link: '/api/packet-subscriptions#5-practical-typescript-examples' },
+        { text: 'Performance & Best Practices', link: '/api/packet-subscriptions#6-performance-and-best-practices' },
+        { text: 'Hot Reload & Troubleshooting', link: '/api/packet-subscriptions#7-script-development-workflow-and-troubleshooting' },
+        { text: 'Quick Reference', link: '/api/packet-subscriptions#8-quick-reference' }
       ]},
       { text: 'API Internals & Audit', items: [
         { text: 'ABI and Package Boundary', link: '/concepts/abi' },
