@@ -20,6 +20,7 @@ The supported external surface is defined by the intersection of the client ABI,
 | Quests | `Quests` |
 | Navigation | `Traversal`, `DirectNavigator` |
 | Events | `events` and bot-scoped `this.on(...)` |
+| Rendered-host packet subscriptions (InTree only) | [`BotHost.subscribePackets`](/api/packet-subscriptions) — 69 incoming packet opcodes; not an external `@rs2b0t/api` export |
 | Settings | `SettingsBag`, `SettingsSchema` |
 | Acquisition | `AcquireTask`, tool and gear planners |
 | Catalogs | Banks, fishing, mining, woodcutting, walking, cows, runecrafting |

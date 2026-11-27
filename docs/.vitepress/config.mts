@@ -30,6 +30,7 @@ export default defineConfig({
         { text: 'Shops', link: '/api/shops' }, { text: 'Trade', link: '/api/trade' },
         { text: 'Dialogue', link: '/api/dialogue' }, { text: 'Quests', link: '/api/quests' },
         { text: 'Navigation', link: '/api/navigation' }, { text: 'Events', link: '/api/events' },
+        { text: 'Packet Subscriptions (InTree)', link: '/api/packet-subscriptions' },
         { text: 'Settings', link: '/api/settings' }, { text: 'Canvas & Overlays', link: '/api/canvas' },
         { text: 'Acquisition & Tools', link: '/api/acquisition' },
         { text: 'World Catalogs', link: '/api/catalogs' }, { text: 'Low-Level Reader', link: '/api/reader' }
